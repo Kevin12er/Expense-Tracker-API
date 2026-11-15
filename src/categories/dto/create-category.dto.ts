@@ -9,7 +9,5 @@ export class CreateCategoryDto {
     @MaxLength(20,{
         message: 'Nama terlalu panjang'
     })
-
-
     name: string;
 }

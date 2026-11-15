@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { createObserveModule } from '@nestjs/observe';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
@@ -15,6 +16,11 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
       appSecret: 'YOUR_APP_SECRET',
       serviceId: 'expense-tracker-api',
     }),
+
+    ConfigModule.forRoot({
+      isGlobal: true
+    }),
+
     CategoriesModule,
   ],
   controllers: [AppController],
