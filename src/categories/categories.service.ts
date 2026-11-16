@@ -48,11 +48,42 @@ export class CategoriesService {
     return category;
   }
 
-  update(id: number, updateCategoryDto: UpdateCategoryDto) {
-    return `This action updates a #${id} category`;
+  async update(id: string, updateCategoryDto: UpdateCategoryDto) {
+    const isCategoryExist = await this.prisma.category.findUnique({
+      where: {
+        id: id,
+      },
+    });
+
+    if (!isCategoryExist) {
+      throw new NotFoundException('Category Not Found');
+    }
+
+    return this.prisma.category.update({
+      where: {
+        id: id,
+      },
+      data: {
+        name: updateCategoryDto.name,
+      },
+    });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} category`;
+  async remove(id: string) {
+    const deleteCategory = await this.prisma.category.findUnique({
+      where: {
+        id: id,
+      },
+    });
+
+    if (!deleteCategory) {
+      throw new NotFoundException('Category Not Found');
+    }
+
+    return this.prisma.category.delete({
+      where: {
+        id: id,
+      },
+    });
   }
 }
