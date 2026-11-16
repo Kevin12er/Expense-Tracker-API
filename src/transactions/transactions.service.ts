@@ -31,19 +31,55 @@ export class TransactionsService {
     });
   }
 
-  findAll() {
-    return `This action returns all transactions`;
+  async findAll() {
+    return this.prisma.transaction.findMany();
   }
 
-  findOne(id: string) {
-    return `This action returns a #${id} transaction`;
+  async findOne(id: string) {
+    const transaction = await this.prisma.transaction.findUnique({
+      where: {
+        id,
+      },
+    });
+
+    if (!transaction) {
+      throw new NotFoundException('Transaksi tidak ditemukan');
+    }
+
+    return transaction;
   }
 
-  update(id: number, updateTransactionDto: UpdateTransactionDto) {
-    return `This action updates a #${id} transaction`;
+
+
+  async update(id: string, updateTransactionDto: UpdateTransactionDto) {
+    const findData = await this.prisma.transaction.findUnique({
+      where: { id }
+    })
+
+    if (!findData) {
+      throw new NotFoundException('Transaksi tidak ditemukan')
+    }
+
+    return this.prisma.transaction.update({
+
+      where: {
+        id: id,
+      },
+      data: updateTransactionDto,
+    })
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} transaction`;
+  async remove(id: string) {
+    const removeTransaction = await this.prisma.transaction.findUnique({
+      where: { id }
+    })
+
+    if(!removeTransaction) {
+      throw new NotFoundException('Transaksi tidak ditemukan')
+    }
+
+    return this.prisma.transaction.delete({
+      where: { id: id, }
+    })
   }
 }
