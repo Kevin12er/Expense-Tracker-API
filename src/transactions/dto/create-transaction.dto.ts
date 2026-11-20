@@ -32,4 +32,13 @@ export class CreateTransactionDto {
     message: 'Format categoryId harus berupa UUID v4 yang valid.',
   })
   categoryId: string;
+
+  //accountId
+  @IsString({ message: 'Input harus berupa string' })
+  @IsNotEmpty({ message: 'Field tidak boleh kosong' })
+  @IsUUID('4', {
+    message: 'Format accountId harus berupa UUID v4 yang valid',
+  })
+
+  accountId: string;
 }

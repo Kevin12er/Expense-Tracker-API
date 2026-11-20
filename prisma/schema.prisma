@@ -25,8 +25,25 @@ model Transaction {
   description String
   amount      Int
   categoryId  String
+  accountId String
+  account   Account @relation(fields: [accountId], references: [id])
   category    Category @relation(fields: [categoryId], references: [id])
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
 
+enum PaymentMethod {
+  CASH
+  BANK
+  E_WALLET
+}
+
+model Account {
+  id      String  @id @default(uuid())
+  name    String
+  transactions Transaction[]
+  accountNumber String? @unique
+  type    PaymentMethod
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
