@@ -2,7 +2,7 @@
 
 ## 1. Tentang Proyek
 
-Expense Tracker API adalah REST API berbasis NestJS (TypeScript) untuk mencatat transaksi keuangan, mengelola kategori, dan akun. Database yang digunakan adalah PostgreSQL melalui Prisma ORM.
+Expense Tracker API adalah REST API berbasis NestJS (TypeScript) untuk mencatat transaksi keuangan, mengelola kategori, akun, dan autentikasi pengguna. Database yang digunakan adalah PostgreSQL melalui Prisma ORM.
 
 ## 2. Teknologi
 
@@ -12,6 +12,7 @@ Expense Tracker API adalah REST API berbasis NestJS (TypeScript) untuk mencatat 
 - Database: PostgreSQL
 - Validasi: class-validator, class-transformer
 - Driver adapter: @prisma/adapter-pg
+- Hash password: bcryptjs
 - Observability: @nestjs/observe
 - Testing: Vitest
 - Linter: oxlint
@@ -28,6 +29,13 @@ src/
 ├── prisma/
 │   ├── prisma.module.ts
 │   └── prisma.service.ts
+├── auth/
+│   ├── auth.module.ts
+│   ├── auth.controller.ts
+│   ├── auth.service.ts
+│   ├── dto/
+│   │   ├── create-auth.dto.ts
+│   │   └── login-auth.dto.ts
 ├── categories/
 │   ├── categories.module.ts
 │   ├── categories.controller.ts
@@ -65,6 +73,14 @@ prisma/
 File: `prisma/schema.prisma`
 
 Model yang tersedia:
+
+### User
+- `id` String (UUID, primary key, default uuid())
+- `name` String
+- `email` String (unique)
+- `password` String
+- `createdAt` DateTime
+- `updatedAt` DateTime
 
 ### Category
 - `id` String (UUID, primary key, default uuid())
@@ -105,6 +121,11 @@ Model yang tersedia:
 - `PrismaService` extends `PrismaClient` menggunakan `PrismaPg` adapter dengan `DATABASE_URL` dari `ConfigService`.
 - Mengimplementasikan `OnModuleInit` (`$connect`) dan `OnModuleDestroy` (`$disconnect`).
 
+### AuthModule (`src/auth/auth.module.ts`)
+- Controller: `AuthController`
+- Provider: `AuthService`, `PrismaService`
+- Catatan: `PrismaService` ditambahkan langsung sebagai provider di sini (bukan melalui `PrismaModule` imports), karena modul auth menggunakan `PrismaService` secara langsung.
+
 ### CategoriesModule (`src/categories/categories.module.ts`)
 - Imports: `PrismaModule`
 - Controller: `CategoriesController`
@@ -120,14 +141,21 @@ Model yang tersedia:
 ### AccountModule (`src/account/account.module.ts`)
 - Controller: `AccountController`
 - Provider: `AccountService`
-- Catatan: saat ini belum mengimpor `PrismaModule` dan service-nya masih berupa placeholder (mengembalikan string statis).
+- Catatan: belum mengimpor `PrismaModule` dan service-nya masih berupa placeholder (mengembalikan string statis).
 
 ### AppModule (`src/app.module.ts`)
-- Imports: `ObserveModule`, `ConfigModule` (global), `CategoriesModule`, `TransactionsModule`, `AccountModule`
+- Imports: `ObserveModule`, `ConfigModule` (global), `CategoriesModule`, `TransactionsModule`, `AccountModule`, `AuthModule`
 - Controller: `AppController`
 - Provider: `AppService`
 
 ## 6. Endpoint API
+
+### Auth (`/auth`)
+
+| Method | Endpoint | Deskripsi |
+|--------|----------|-----------|
+| POST | `/auth/register` | Registrasi pengguna baru |
+| POST | `/auth/login` | Login pengguna |
 
 ### Categories (`/categories`)
 
@@ -161,6 +189,15 @@ Model yang tersedia:
 
 ## 7. DTO dan Validasi
 
+### CreateAuthDto (register)
+- `name`: string, wajib diisi, di-trim
+- `email`: string, wajib diisi, format email valid
+- `password`: string, wajib diisi, minimal 6 karakter
+
+### CreateLoginDto (login)
+- `email`: string, wajib diisi, di-trim, format email valid
+- `password`: string, wajib diisi
+
 ### CreateTransactionDto
 - `description`: string, wajib diisi, maksimal 100 karakter, di-trim
 - `amount`: integer, wajib diisi, harus lebih besar dari 0
@@ -179,6 +216,10 @@ Model yang tersedia:
 Validasi diaktifkan secara global di `main.ts` melalui `ValidationPipe` dengan `whitelist: true` dan `transform: true`.
 
 ## 8. Implementasi Service (Ringkasan)
+
+### AuthService
+- `register`: cek apakah email sudah terdaftar, throw error jika sudah ada, hash password dengan bcrypt (salt 10), lalu buat user.
+- `login`: cek keberadaan email, throw `UnauthorizedException` jika tidak terdaftar, bandingkan password dengan bcrypt, throw `UnauthorizedException` jika salah, lalu return data user (id, name, email) tanpa password.
 
 ### CategoriesService
 - `create`: cek duplikasi nama kategori, throw `ConflictException` jika sudah ada, lalu buat.
@@ -243,8 +284,10 @@ Aplikasi akan berjalan di port `3000` (atau port dari env `PORT`).
 
 ## 10. Catatan Penting
 
-- `PrismaModule` harus diimpor ke setiap modul yang membutuhkan `PrismaService` karena `PrismaService` diexport dari `PrismaModule`.
+- `PrismaModule` harus diimpor ke setiap modul yang membutuhkan `PrismaService` melalui exports, karena `PrismaService` diexport dari `PrismaModule`.
+- `AuthModule` memasang `PrismaService` langsung sebagai provider (bukan lewat `PrismaModule` imports).
 - Semua ID menggunakan UUID v4.
+- Password di-hash dengan bcrypt sebelum disimpan ke database; response login tidak menyertakan password.
 - `UpdateTransactionDto` memisahkan field relasi (`categoryId`, `accountId`) dari data biasa saat update agar bisa menggunakan `connect` pada Prisma.
 - Entitas `Transaction` dan `Category` di folder `entities/` saat ini masih kosong (hanya class kosong), validasi sebenarnya dilakukan melalui DTO.
 - `AccountModule` belum diimpor `PrismaModule` dan service-nya masih placeholder, perlu diimplementasi sesuai kebutuhan.
