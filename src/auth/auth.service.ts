@@ -4,10 +4,11 @@ import { PrismaService } from '../prisma/prisma.service.js';
 import * as bcrypt from 'bcryptjs';
 import { bytes } from 'stream/consumers';
 import { CreateLoginDto } from './dto/login-auth.dto.js';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService, private readonly jwtService: JwtService) {}
 
   async register(createAuthDto: CreateAuthDto) {
     // 1. Cek apakah email sudah terdaftar di database
@@ -54,11 +55,14 @@ export class AuthService {
       throw new UnauthorizedException('Email atau password salah')
     }
 
+    const payload = { sub: isEmailExist.id, email: isEmailExist.email }
+    const accessToken = await this.jwtService.signAsync(payload)
+
     return {
       id: isEmailExist.id,
       name: isEmailExist.name,
-      email: isEmailExist.email
-    }
-    
-  }
+      email: isEmailExist.email,
+      accessToken,
+    };
+}
 }
