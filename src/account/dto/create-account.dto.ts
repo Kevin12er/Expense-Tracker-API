@@ -4,6 +4,7 @@ import {
     MaxLength,
     IsOptional,
     IsIn,
+    Matches,
  } from 'class-validator'
  import { Transform } from 'class-transformer'
 
@@ -20,7 +21,10 @@ export class CreateAccountDto {
     name: string
 
     //accountNumber 
-    @IsString({message: 'Masukkan teks yang valid' })
+    @IsString({})
+    @Matches(/^[0-9]+$/, {
+        message: 'accountNumber hanya boleh di isi angka'
+    })
     @IsOptional({})
     accountNumber?: string
 
