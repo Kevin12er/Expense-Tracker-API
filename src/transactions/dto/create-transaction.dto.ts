@@ -39,6 +39,7 @@ export class CreateTransactionDto {
   @IsUUID('4', {
     message: 'Format accountId harus berupa UUID v4 yang valid',
   })
-
   accountId: string;
+
+  
 }
