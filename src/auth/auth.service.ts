@@ -1,26 +1,34 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateAuthDto } from './dto/create-auth.dto.js';
-import { UpdateAuthDto } from './dto/update-auth.dto.js';
+import { PrismaService } from '../prisma/prisma.service.js';
+import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class AuthService {
-  create(createAuthDto: CreateAuthDto) {
-    return 'This action adds a new auth';
-  }
+  constructor(private readonly prisma: PrismaService) {}
 
-  findAll() {
-    return `This action returns all auth`;
-  }
+  async register(createAuthDto: CreateAuthDto) {
+    // 1. Cek apakah email sudah terdaftar di database
+    const existingUser = await this.prisma.user.findUnique({
+      where: {
+        email: createAuthDto.email },
+    });
 
-  findOne(id: number) {
-    return `This action returns a #${id} auth`;
-  }
+    if (existingUser) {
+      throw new Error('Email sudah terdaftar');
+    }
 
-  update(id: number, updateAuthDto: UpdateAuthDto) {
-    return `This action updates a #${id} auth`;
-  }
+    // 2. Hash password menggunakan bcrypt
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(createAuthDto.password, saltRounds);
 
-  remove(id: number) {
-    return `This action removes a #${id} auth`;
+    // 3. Simpan user ke database (password sudah di-hash)
+    return this.prisma.user.create({
+      data:{
+        name: createAuthDto.name,
+        email: createAuthDto.email,
+        password: hashedPassword,
+      },
+    });
   }
 }
