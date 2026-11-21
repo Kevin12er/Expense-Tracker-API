@@ -3,6 +3,7 @@ import { CreateAuthDto } from './dto/create-auth.dto.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import * as bcrypt from 'bcryptjs';
 import { bytes } from 'stream/consumers';
+import { CreateLoginDto } from './dto/login-auth.dto.js';
 
 @Injectable()
 export class AuthService {
@@ -33,10 +34,10 @@ export class AuthService {
     });
   }
 
-  async login(createAuthDto: CreateAuthDto) {
+  async login(createLoginDto: CreateLoginDto) {
     const isEmailExist = await this.prisma.user.findUnique({
       where: {
-        email: createAuthDto.email
+        email: createLoginDto.email
       }
     })
 
@@ -45,7 +46,7 @@ export class AuthService {
     }
 
     const isPasswordValid = await bcrypt.compare(
-      createAuthDto.password,
+      createLoginDto.password,
       isEmailExist.password
     )
 
