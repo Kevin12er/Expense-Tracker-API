@@ -1,9 +1,11 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { AccountService } from './account.service.js';
 import { CreateAccountDto } from './dto/create-account.dto.js';
 import { UpdateAccountDto } from './dto/update-account.dto.js';
+import { AuthGuard } from '../auth/auth.guard.js';
 
 @Controller('account')
+@UseGuards(AuthGuard)
 export class AccountController {
   constructor(private readonly accountService: AccountService) {}
 
