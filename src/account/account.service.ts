@@ -41,6 +41,7 @@ export class AccountService {
     const existingAccount = await this.prisma.account.findUnique({
       where: {
         id: id,
+        userId: userId,
       },
     });
 
@@ -58,7 +59,7 @@ export class AccountService {
 
     // 2. Kalau lolos, langsung update datanya
     return this.prisma.account.update({
-      where: { id },
+      where: { id, userId },
       data: {
         name: updateAccountDto.name,
       },
