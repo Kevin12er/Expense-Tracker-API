@@ -30,8 +30,9 @@ export class CategoriesService {
     });
   }
 
-  findAll() {
-    return this.prisma.category.findMany();
+  findAll(userId: string) {
+    return this.prisma.category.findMany({
+    });
   }
 
   async findOne(id: string) {
