@@ -33,6 +33,7 @@ src/
 │   ├── auth.module.ts
 │   ├── auth.controller.ts
 │   ├── auth.service.ts
+│   ├── auth.guard.ts
 │   ├── dto/
 │   │   ├── create-auth.dto.ts
 │   │   └── login-auth.dto.ts
@@ -122,9 +123,17 @@ Model yang tersedia:
 - Mengimplementasikan `OnModuleInit` (`$connect`) dan `OnModuleDestroy` (`$disconnect`).
 
 ### AuthModule (`src/auth/auth.module.ts`)
+- Imports: `PrismaModule`, `JwtModule` (dikonfigurasi dengan `JWT_SECRET` dan expired 1 hari)
 - Controller: `AuthController`
-- Provider: `AuthService`, `PrismaService`
-- Catatan: `PrismaService` ditambahkan langsung sebagai provider di sini (bukan melalui `PrismaModule` imports), karena modul auth menggunakan `PrismaService` secara langsung.
+- Provider: `AuthService`
+- `PrismaService` diimpor melalui `PrismaModule` (seragam dengan modul lain), tidak lagi ditambahkan langsung ke `providers`.
+
+### AuthGuard (`src/auth/auth.guard.ts`)
+- Mengimplementasikan `CanActivate` dari `@nestjs/common`.
+- Method `canActivate(context: ExecutionContext)` mengecek header `Authorization` berawalan `Bearer `.
+- Memverifikasi token JWT melalui `this.jwtService.verify(token)`.
+- Melempar `UnauthorizedException` jika header tidak ada atau token tidak valid/kedaluwarsa.
+- Mengembalikan `true` jika verifikasi berhasil.
 
 ### CategoriesModule (`src/categories/categories.module.ts`)
 - Imports: `PrismaModule`
@@ -139,9 +148,10 @@ Model yang tersedia:
 - Sama seperti CategoriesModule, membutuhkan `PrismaService` untuk operasi database.
 
 ### AccountModule (`src/account/account.module.ts`)
+- Imports: `PrismaModule`
 - Controller: `AccountController`
 - Provider: `AccountService`
-- Catatan: belum mengimpor `PrismaModule` dan service-nya masih berupa placeholder (mengembalikan string statis).
+- Terhubung ke Prisma untuk operasi database akun.
 
 ### AppModule (`src/app.module.ts`)
 - Imports: `ObserveModule`, `ConfigModule` (global), `CategoriesModule`, `TransactionsModule`, `AccountModule`, `AuthModule`
@@ -152,10 +162,17 @@ Model yang tersedia:
 
 ### Auth (`/auth`)
 
-| Method | Endpoint | Deskripsi |
-|--------|----------|-----------|
-| POST | `/auth/register` | Registrasi pengguna baru |
-| POST | `/auth/login` | Login pengguna |
+| Method | Endpoint | Deskripsi | Auth diperlukan |
+|--------|----------|-----------|-----------------|
+| POST | `/auth/register` | Registrasi pengguna baru | Tidak |
+| POST | `/auth/login` | Login pengguna, mengembalikan `accessToken` | Tidak |
+
+### Flow Autentikasi JWT
+
+1. **Register** (`POST /auth/register`): mengirim `name`, `email`, `password`. Password di-hash dengan bcrypt (salt 10) sebelum disimpan.
+2. **Login** (`POST /auth/login`): mengirim `email` dan `password`. Jika valid, server menghasilkan `accessToken` melalui `JwtService.signAsync()` dengan payload `{ sub: userId, email }` dan expired 1 hari. Response berisi `id`, `name`, `email`, dan `accessToken`.
+3. **Mengakses endpoint terproteksi**: client menyertakan header `Authorization: Bearer <accessToken>` pada setiap request. `AuthGuard` memverifikasi token sebelum memproses request.
+
 
 ### Categories (`/categories`)
 
@@ -219,7 +236,7 @@ Validasi diaktifkan secara global di `main.ts` melalui `ValidationPipe` dengan `
 
 ### AuthService
 - `register`: cek apakah email sudah terdaftar, throw error jika sudah ada, hash password dengan bcrypt (salt 10), lalu buat user.
-- `login`: cek keberadaan email, throw `UnauthorizedException` jika tidak terdaftar, bandingkan password dengan bcrypt, throw `UnauthorizedException` jika salah, lalu return data user (id, name, email) tanpa password.
+- `login`: cek keberadaan email, throw `UnauthorizedException` jika tidak terdaftar, bandingkan password dengan bcrypt, throw `UnauthorizedException` jika salah, generate `accessToken` via `jwtService.signAsync()`, lalu return `{ id, name, email, accessToken }` (tanpa password).
 
 ### CategoriesService
 - `create`: cek duplikasi nama kategori, throw `ConflictException` jika sudah ada, lalu buat.
@@ -244,6 +261,7 @@ Persiapan environment (file `.env`):
 ```
 DATABASE_URL="postgresql://user:password@localhost:5432/dbname"
 PORT=3000
+JWT_SECRET="rahasia-jwt-anda"
 ```
 
 Perintah yang tersedia (`package.json`):
@@ -285,9 +303,10 @@ Aplikasi akan berjalan di port `3000` (atau port dari env `PORT`).
 ## 10. Catatan Penting
 
 - `PrismaModule` harus diimpor ke setiap modul yang membutuhkan `PrismaService` melalui exports, karena `PrismaService` diexport dari `PrismaModule`.
-- `AuthModule` memasang `PrismaService` langsung sebagai provider (bukan lewat `PrismaModule` imports).
+- `AuthModule` mengimpor `PrismaModule` (seragam dengan `CategoriesModule` dan `TransactionsModule`), bukan memasang `PrismaService` langsung ke `providers`.
 - Semua ID menggunakan UUID v4.
 - Password di-hash dengan bcrypt sebelum disimpan ke database; response login tidak menyertakan password.
 - `UpdateTransactionDto` memisahkan field relasi (`categoryId`, `accountId`) dari data biasa saat update agar bisa menggunakan `connect` pada Prisma.
 - Entitas `Transaction` dan `Category` di folder `entities/` saat ini masih kosong (hanya class kosong), validasi sebenarnya dilakukan melalui DTO.
+- `JWT_SECRET` harus diatur di file `.env` untuk menandatangani dan memverifikasi token JWT (fallback ke default jika tidak diatur).
 - `AccountModule` belum diimpor `PrismaModule` dan service-nya masih placeholder, perlu diimplementasi sesuai kebutuhan.

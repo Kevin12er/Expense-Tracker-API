@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { CreateAuthDto } from './dto/create-auth.dto.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import * as bcrypt from 'bcryptjs';
@@ -18,7 +18,7 @@ export class AuthService {
     });
 
     if (existingUser) {
-      throw new Error('Email sudah terdaftar');
+      throw new ConflictException('Email sudah terdaftar');
     }
 
     // 2. Hash password menggunakan bcrypt
