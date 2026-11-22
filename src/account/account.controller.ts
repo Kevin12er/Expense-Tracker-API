@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request } from '@nestjs/common';
 import { AccountService } from './account.service.js';
 import { CreateAccountDto } from './dto/create-account.dto.js';
 import { UpdateAccountDto } from './dto/update-account.dto.js';
@@ -10,8 +10,10 @@ export class AccountController {
   constructor(private readonly accountService: AccountService) {}
 
   @Post()
-  create(@Body() createAccountDto: CreateAccountDto) {
-    return this.accountService.create(createAccountDto);
+  // [MODIFIED] Add @Request() to extract userId from JWT token
+  create(@Body() createAccountDto: CreateAccountDto, @Request() request: any) {
+    const userId = request.user.sub;
+    return this.accountService.create(createAccountDto, userId);
   }
 
   @Get()

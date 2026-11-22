@@ -1,5 +1,4 @@
 import {
-  ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -12,15 +11,21 @@ export class AccountService {
   constructor(private readonly prisma: PrismaService) {}
 
   // Create
-  async create(createAccountDto: CreateAccountDto) {
-    return await this.prisma.account.create({
-      data: {
-        name: createAccountDto.name,
-        accountNumber: createAccountDto.accountNumber,
-        type: createAccountDto.type,
-      },
-    });
-  }
+    // [MODIFIED] Accept userId parameter and connect user relation to Prisma
+    async create(createAccountDto: CreateAccountDto, userId: string) {
+      return await this.prisma.account.create({
+        data: {
+          name: createAccountDto.name,
+          accountNumber: createAccountDto.accountNumber,
+          type: createAccountDto.type,
+          user: {
+            connect: {
+              id: userId,
+            },
+          },
+        },
+      });
+    }
 
   // findall
   async findAll() {

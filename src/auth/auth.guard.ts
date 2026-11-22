@@ -22,7 +22,9 @@ import {
         const token = authHeader.split(' ')[1];
 
         try {
-            await this.jwtService.verify(token);
+            const payload = await this.jwtService.verify(token);
+            // [MODIFIED] Assign JWT payload to request.user so controllers can access request.user.sub
+            request['user'] = payload;
             return true;
         } catch {
             throw new UnauthorizedException('Token tidak valid atau kedaluwarsa');

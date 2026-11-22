@@ -1,4 +1,3 @@
-
 import {
   Injectable,
   NotFoundException,
@@ -14,7 +13,8 @@ export class TransactionsService {
   constructor(private readonly prisma: PrismaService) {}
 
   // CREATE
-  async create(createTransactionDto: CreateTransactionDto) {
+  // [MODIFIED] Accept userId parameter and connect user relation to Prisma
+  async create(createTransactionDto: CreateTransactionDto, userId: string) {
     // 1. Periksa apakah Category tersedia
     const isCategoryExist = await this.prisma.category.findUnique({
       where: {
@@ -44,16 +44,19 @@ export class TransactionsService {
       data: {
         description: createTransactionDto.description,
         amount: createTransactionDto.amount,
-
         category: {
           connect: {
             id: createTransactionDto.categoryId,
           },
         },
-
         account: {
           connect: {
             id: createTransactionDto.accountId,
+          },
+        },
+        user: {
+          connect: {
+            id: userId,
           },
         },
       },
