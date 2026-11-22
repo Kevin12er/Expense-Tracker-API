@@ -18,6 +18,7 @@ model User {
   email String @unique
   password  String
   accounts  Account[]
+  categories   Category[] 
   transactions Transaction[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -26,6 +27,8 @@ model User {
 model Category {
   id      String @id @default(uuid())
   name    String @unique
+  userId  String
+  user    User @relation(fields: [userId], references: [id])
   transactions Transaction[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

@@ -4,14 +4,16 @@ import { CreateCategoryDto } from './dto/create-category.dto.js';
 import { UpdateCategoryDto } from './dto/update-category.dto.js';
 import { AuthGuard } from '../auth/auth.guard.js';
 
+
 @Controller('categories')
 @UseGuards(AuthGuard)
 export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 
   @Post()
-  create(@Body() createCategoryDto: CreateCategoryDto) {
-    return this.categoriesService.create(createCategoryDto);
+  create(@Body() createCategoryDto: CreateCategoryDto, @Request() request: any) {
+    const userId = request.user.sub;
+    return this.categoriesService.create(createCategoryDto, userId);
   }
 
   @Get()
@@ -21,17 +23,20 @@ export class CategoriesController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.categoriesService.findOne(id);
+  findOne(@Param('id') id: string, @Request() request: any) {
+    const userId = request.user.sub;
+    return this.categoriesService.findOne(id, userId);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCategoryDto: UpdateCategoryDto) {
-    return this.categoriesService.update(id, updateCategoryDto);
+  update(@Param('id') id: string, @Body() updateCategoryDto: UpdateCategoryDto, @Request() request: any) {
+    const userId = request.user.sub;
+    return this.categoriesService.update(id, updateCategoryDto, userId);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.categoriesService.remove(id);
+  remove(@Param('id') id: string, @Request() request: any) {
+    const userId = request.user.sub;
+    return this.categoriesService.remove(id, userId);
   }
 }
