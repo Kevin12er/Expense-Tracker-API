@@ -17,22 +17,26 @@ export class TransactionsController {
   }
 
   @Get()
-  findAll() {
-    return this.transactionsService.findAll();
+  findAll(@Request() request: any) {
+    const userId = request.user.sub;
+    return this.transactionsService.findAll(userId);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.transactionsService.findOne(id);
+  findOne(@Param('id') id: string, @Request() request: any) {
+    const userId = request.user.sub;
+    return this.transactionsService.findOne(id, userId);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateTransactionDto: UpdateTransactionDto) {
-    return this.transactionsService.update(id, updateTransactionDto);
+  update(@Param('id') id: string, @Body() updateTransactionDto: UpdateTransactionDto, @Request() request: any) {
+    const userId = request.user.sub;
+    return this.transactionsService.update(id, updateTransactionDto, userId);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.transactionsService.remove(id);
+  remove(@Param('id') id: string, @Request() request: any) {
+    const userId = request.user.sub;
+    return this.transactionsService.remove(id, userId);
   }
 }

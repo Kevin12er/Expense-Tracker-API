@@ -64,20 +64,24 @@ export class TransactionsService {
   }
 
   // FIND ALL
-  async findAll() {
+  async findAll(userId: string) {
     return this.prisma.transaction.findMany({
       include: {
         category: true,
         account: true,
       },
+      where: {
+        userId: userId
+      }
     });
   }
 
   // FIND ONE
-  async findOne(id: string) {
+  async findOne(id: string, userId: string) {
     const transaction = await this.prisma.transaction.findUnique({
       where: {
         id,
+        userId,
       },
       include: {
         category: true,
@@ -96,11 +100,13 @@ export class TransactionsService {
   async update(
     id: string,
     updateTransactionDto: UpdateTransactionDto,
+    userId: string
   ) {
     // 1. Periksa apakah Transaction tersedia
     const findData = await this.prisma.transaction.findUnique({
       where: {
         id,
+        userId,
       },
     });
 
@@ -159,16 +165,18 @@ export class TransactionsService {
     return this.prisma.transaction.update({
       where: {
         id,
+        userId,
       },
       data,
     });
   }
 
   // REMOVE
-  async remove(id: string) {
+  async remove(id: string, userId: string) {
     const removeTransaction = await this.prisma.transaction.findUnique({
       where: {
         id,
+        userId,
       },
     });
 
@@ -179,6 +187,7 @@ export class TransactionsService {
     return this.prisma.transaction.delete({
       where: {
         id,
+        userId,
       },
     });
   }
