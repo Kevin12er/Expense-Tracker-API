@@ -28,12 +28,16 @@ export class AccountService {
     }
 
   // findall
-  async findAll() {
-    return await this.prisma.account.findMany();
+  async findAll(userId: string) {
+    return this.prisma.account.findMany({
+      where: {
+        userId: userId
+      }
+    })
   }
 
   // find one or spesific using id
-  async findOne(id: string) {
+  async findOne(id: string, userId: string) {
     const existingAccount = await this.prisma.account.findUnique({
       where: {
         id: id,
@@ -48,9 +52,9 @@ export class AccountService {
   }
 
   //update
-  async update(id: string, updateAccountDto: UpdateAccountDto) {
+  async update(id: string, updateAccountDto: UpdateAccountDto, userId: string) {
     // 1. Cukup panggil findOne. Kalau tidak ada, otomatis error tertangkap di sini!
-    await this.findOne(id);
+    await this.findOne(id, userId);
 
     // 2. Kalau lolos, langsung update datanya
     return this.prisma.account.update({
@@ -62,9 +66,9 @@ export class AccountService {
   }
 
   //delete
-  async remove(id: string) {
+  async remove(id: string, userId: string) {
     
-    await this.findOne(id);
+    await this.findOne(id, userId);
 
    
     return this.prisma.account.delete({

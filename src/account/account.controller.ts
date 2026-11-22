@@ -17,22 +17,26 @@ export class AccountController {
   }
 
   @Get()
-  findAll() {
-    return this.accountService.findAll();
+  findAll(@Request() request: any) {
+    const userId = request.user.sub;
+    return this.accountService.findAll(userId);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.accountService.findOne(id);
+  findOne(@Param('id') id: string, @Request() request: any) {
+    const userId = request.user.sub;
+    return this.accountService.findOne(id, userId);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateAccountDto: UpdateAccountDto) {
-    return this.accountService.update(id, updateAccountDto);
+  update(@Param('id') id: string, @Body() updateAccountDto: UpdateAccountDto, @Request() request: any) {
+    const userId = request.user.sub;
+    return this.accountService.update(id, updateAccountDto, userId);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.accountService.remove(id);
+  remove(@Param('id') id: string, @Request() request: any) {
+    const userId = request.user.sub;
+    return this.accountService.remove(id, userId);
   }
 }
