@@ -1,114 +1,312 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Dokumentasi Expense Tracker API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+## 1. Tentang Proyek
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+Expense Tracker API adalah REST API berbasis NestJS (TypeScript) untuk mencatat transaksi keuangan, mengelola kategori, akun, dan autentikasi pengguna. Database yang digunakan adalah PostgreSQL melalui Prisma ORM.
 
-## Description
+## 2. Teknologi
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- Framework: NestJS v12
+- Bahasa: TypeScript (ES modules)
+- ORM: Prisma v7
+- Database: PostgreSQL
+- Validasi: class-validator, class-transformer
+- Driver adapter: @prisma/adapter-pg
+- Hash password: bcryptjs
+- Observability: @nestjs/observe
+- Testing: Vitest
+- Linter: oxlint
+- Formatter: Prettier
 
-## Project setup
+## 3. Struktur Direktori
 
-```bash
-$ npm install
+```
+src/
+├── app.module.ts
+├── app.controller.ts
+├── app.service.ts
+├── main.ts
+├── prisma/
+│   ├── prisma.module.ts
+│   └── prisma.service.ts
+├── auth/
+│   ├── auth.module.ts
+│   ├── auth.controller.ts
+│   ├── auth.service.ts
+│   ├── auth.guard.ts
+│   ├── dto/
+│   │   ├── create-auth.dto.ts
+│   │   └── login-auth.dto.ts
+├── categories/
+│   ├── categories.module.ts
+│   ├── categories.controller.ts
+│   ├── categories.service.ts
+│   ├── dto/
+│   │   ├── create-category.dto.ts
+│   │   └── update-category.dto.ts
+│   └── entities/
+│       └── category.entity.ts
+├── transactions/
+│   ├── transactions.module.ts
+│   ├── transactions.controller.ts
+│   ├── transactions.service.ts
+│   ├── dto/
+│   │   ├── create-transaction.dto.ts
+│   │   └── update-transaction.dto.ts
+│   └── entities/
+│       └── transaction.entity.ts
+└── account/
+    ├── account.module.ts
+    ├── account.controller.ts
+    ├── account.service.ts
+    ├── dto/
+    │   ├── create-account.dto.ts
+    │   └── update-account.dto.ts
+    └── entities/
+        └── account.entity.ts
+
+prisma/
+└── schema.prisma
 ```
 
-## Compile and run the project
+## 4. Skema Database (Prisma)
 
-```bash
-# development
-$ npm run start
+File: `prisma/schema.prisma`
 
-# watch mode
-$ npm run start:dev
+Model yang tersedia:
 
-# production mode
-$ npm run start:prod
+### User
+- `id` String (UUID, primary key, default uuid())
+- `name` String
+- `email` String (unique)
+- `password` String
+- `createdAt` DateTime
+- `updatedAt` DateTime
+
+### Category
+- `id` String (UUID, primary key, default uuid())
+- `name` String (unique)
+- `transactions` Transaction[]
+- `createdAt` DateTime
+- `updatedAt` DateTime
+
+### Transaction
+- `id` String (UUID, primary key, default uuid())
+- `description` String
+- `amount` Int
+- `categoryId` String (foreign key ke Category)
+- `accountId` String (foreign key ke Account)
+- `category` Category (relasi)
+- `account` Account (relasi)
+- `createdAt` DateTime
+- `updatedAt` DateTime
+
+### Account
+- `id` String (UUID, primary key)
+- `name` String
+- `transactions` Transaction[]
+- `accountNumber` String? (unique, nullable)
+- `type` PaymentMethod (enum)
+- `createdAt` DateTime
+- `updatedAt` DateTime
+
+### Enum PaymentMethod
+- CASH
+- BANK
+- E_WALLET
+
+## 5. Modul
+
+### PrismaModule (`src/prisma/prisma.module.ts`)
+- Menyediakan `PrismaService` yang diekport ke modul lain.
+- `PrismaService` extends `PrismaClient` menggunakan `PrismaPg` adapter dengan `DATABASE_URL` dari `ConfigService`.
+- Mengimplementasikan `OnModuleInit` (`$connect`) dan `OnModuleDestroy` (`$disconnect`).
+
+### AuthModule (`src/auth/auth.module.ts`)
+- Imports: `PrismaModule`, `JwtModule` (dikonfigurasi dengan `JWT_SECRET` dan expired 1 hari)
+- Controller: `AuthController`
+- Provider: `AuthService`
+- `PrismaService` diimpor melalui `PrismaModule` (seragam dengan modul lain), tidak lagi ditambahkan langsung ke `providers`.
+
+### AuthGuard (`src/auth/auth.guard.ts`)
+- Mengimplementasikan `CanActivate` dari `@nestjs/common`.
+- Method `canActivate(context: ExecutionContext)` mengecek header `Authorization` berawalan `Bearer `.
+- Memverifikasi token JWT melalui `this.jwtService.verify(token)`.
+- Melempar `UnauthorizedException` jika header tidak ada atau token tidak valid/kedaluwarsa.
+- Mengembalikan `true` jika verifikasi berhasil.
+
+### CategoriesModule (`src/categories/categories.module.ts`)
+- Imports: `PrismaModule`
+- Controller: `CategoriesController`
+- Provider: `CategoriesService`
+- Alasan `PrismaModule` dimasukkan ke `imports`: `CategoriesService` membutuhkan `PrismaService` yang diexport oleh `PrismaModule`. Tanpa ini, NestJS tidak dapat resolves provider lintas modul.
+
+### TransactionsModule (`src/transactions/transactions.module.ts`)
+- Imports: `PrismaModule`
+- Controller: `TransactionsController`
+- Provider: `TransactionsService`
+- Sama seperti CategoriesModule, membutuhkan `PrismaService` untuk operasi database.
+
+### AccountModule (`src/account/account.module.ts`)
+- Imports: `PrismaModule`
+- Controller: `AccountController`
+- Provider: `AccountService`
+- Terhubung ke Prisma untuk operasi database akun.
+
+### AppModule (`src/app.module.ts`)
+- Imports: `ObserveModule`, `ConfigModule` (global), `CategoriesModule`, `TransactionsModule`, `AccountModule`, `AuthModule`
+- Controller: `AppController`
+- Provider: `AppService`
+
+## 6. Endpoint API
+
+### Auth (`/auth`)
+
+| Method | Endpoint | Deskripsi | Auth diperlukan |
+|--------|----------|-----------|-----------------|
+| POST | `/auth/register` | Registrasi pengguna baru | Tidak |
+| POST | `/auth/login` | Login pengguna, mengembalikan `accessToken` | Tidak |
+
+### Flow Autentikasi JWT
+
+1. **Register** (`POST /auth/register`): mengirim `name`, `email`, `password`. Password di-hash dengan bcrypt (salt 10) sebelum disimpan.
+2. **Login** (`POST /auth/login`): mengirim `email` dan `password`. Jika valid, server menghasilkan `accessToken` melalui `JwtService.signAsync()` dengan payload `{ sub: userId, email }` dan expired 1 hari. Response berisi `id`, `name`, `email`, dan `accessToken`.
+3. **Mengakses endpoint terproteksi**: client menyertakan header `Authorization: Bearer <accessToken>` pada setiap request. `AuthGuard` memverifikasi token sebelum memproses request.
+
+
+### Categories (`/categories`)
+
+| Method | Endpoint | Deskripsi |
+|--------|----------|-----------|
+| POST | `/categories` | Buat kategori baru |
+| GET | `/categories` | Lihat semua kategori |
+| GET | `/categories/:id` | Lihat satu kategori |
+| PATCH | `/categories/:id` | Update kategori |
+| DELETE | `/categories/:id` | Hapus kategori |
+
+### Transactions (`/transactions`)
+
+| Method | Endpoint | Deskripsi |
+|--------|----------|-----------|
+| POST | `/transactions` | Buat transaksi baru |
+| GET | `/transactions` | Lihat semua transaksi (termasuk relasi category & account) |
+| GET | `/transactions/:id` | Lihat satu transaksi |
+| PATCH | `/transactions/:id` | Update transaksi |
+| DELETE | `/transactions/:id` | Hapus transaksi |
+
+### Account (`/account`)
+
+| Method | Endpoint | Deskripsi |
+|--------|----------|-----------|
+| POST | `/account` | Buat akun baru |
+| GET | `/account` | Lihat semua akun |
+| GET | `/account/:id` | Lihat satu akun |
+| PATCH | `/account/:id` | Update akun |
+| DELETE | `/account/:id` | Hapus akun |
+
+## 7. DTO dan Validasi
+
+### CreateAuthDto (register)
+- `name`: string, wajib diisi, di-trim
+- `email`: string, wajib diisi, format email valid
+- `password`: string, wajib diisi, minimal 6 karakter
+
+### CreateLoginDto (login)
+- `email`: string, wajib diisi, di-trim, format email valid
+- `password`: string, wajib diisi
+
+### CreateTransactionDto
+- `description`: string, wajib diisi, maksimal 100 karakter, di-trim
+- `amount`: integer, wajib diisi, harus lebih besar dari 0
+- `categoryId`: string UUID v4, wajib diisi, di-trim
+- `accountId`: string UUID v4, wajib diisi
+
+### UpdateTransactionDto
+- Turunan `PartialType` dari `CreateTransactionDto`, semua field opsional.
+
+### CreateCategoryDto
+- `name`: string, wajib diisi, maksimal 20 karakter, di-trim
+
+### UpdateCategoryDto
+- Turunan `PartialType` dari `CreateCategoryDto`, semua field opsional.
+
+Validasi diaktifkan secara global di `main.ts` melalui `ValidationPipe` dengan `whitelist: true` dan `transform: true`.
+
+## 8. Implementasi Service (Ringkasan)
+
+### AuthService
+- `register`: cek apakah email sudah terdaftar, throw error jika sudah ada, hash password dengan bcrypt (salt 10), lalu buat user.
+- `login`: cek keberadaan email, throw `UnauthorizedException` jika tidak terdaftar, bandingkan password dengan bcrypt, throw `UnauthorizedException` jika salah, generate `accessToken` via `jwtService.signAsync()`, lalu return `{ id, name, email, accessToken }` (tanpa password).
+
+### CategoriesService
+- `create`: cek duplikasi nama kategori, throw `ConflictException` jika sudah ada, lalu buat.
+- `findAll`: ambil semua kategori.
+- `findOne`: ambil satu kategori berdasarkan ID, throw `NotFoundException` jika tidak ditemukan.
+- `update`: cek keberadaan, update nama, throw `NotFoundException` jika tidak ditemukan.
+- `remove`: cek keberadaan, hapus, throw `NotFoundException` jika tidak ditemukan.
+
+### TransactionsService
+- `create`: validasi keberadaan `categoryId` dan `accountId`, throw `NotFoundException` jika salah satu tidak ada, lalu buat transaksi dengan relasi `connect` ke category dan account.
+- `findAll`: ambil semua transaksi dengan include `category` dan `account`.
+- `findOne`: ambil satu transaksi berdasarkan ID dengan include `category` dan `account`, throw `NotFoundException` jika tidak ditemukan.
+- `update`: cek keberadaan transaksi, pisahkan `categoryId`/`accountId` dari data biasa, validasi relasi jika dikirim, lalu update.
+- `remove`: cek keberadaan, hapus transaksi, throw `NotFoundException` jika tidak ditemukan.
+
+### AccountService
+- Saat ini masih placeholder (mengembalikan string statis), belum terhubung ke Prisma.
+
+## 9. Menjalankan Proyek
+
+Persiapan environment (file `.env`):
+```
+DATABASE_URL="postgresql://user:password@localhost:5432/dbname"
+PORT=3000
+JWT_SECRET="rahasia-jwt-anda"
 ```
 
-## Run tests
+Perintah yang tersedia (`package.json`):
 
 ```bash
-# unit tests
-$ npm run test
+# Install dependensi
+npm install
 
-# e2e tests
-$ npm run test:e2e
+# Generate Prisma Client
+npx prisma generate
 
-# test coverage
-$ npm run test:cov
+# Jalankan migration (jika ada)
+npx prisma migrate dev
+
+# Development mode
+npm run start:dev
+
+# Production build
+npm run build
+
+# Jalankan production
+npm run start:prod
+
+# Lint
+npm run lint
+
+# Test
+npm run test
+
+# Test coverage
+npm run test:cov
+
+# Format kode
+npm run format
 ```
 
-## Deployment
+Aplikasi akan berjalan di port `3000` (atau port dari env `PORT`).
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+## 10. Catatan Penting
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Observability
-
-In production applications, observability is essential for understanding how your system behaves, detecting issues early, and maintaining reliable performance.
-
-[NestJS Observe](https://observe.nestjs.com) automatically instruments your NestJS application, giving you deep visibility into your system with minimal setup:
-
-- **Distributed tracing:** Follow requests across services and understand how they flow through your system.
-- **Waterfall analysis:** Visualize request execution and identify slow operations, bottlenecks, and unexpected delays.
-- **Performance analysis:** Analyze application performance in real time and quickly pinpoint areas that need optimization.
-- **Metrics:** Track key application and infrastructure metrics to understand system health and performance trends.
-- **Logging:** Centralize and correlate logs with traces and other telemetry to make debugging easier.
-- **Error tracking:** Detect errors quickly and investigate their root causes with the surrounding context.
-- **SLA monitoring:** Track service-level objectives and identify when your application is approaching or exceeding defined thresholds.
-- **Alarms and alerts:** Set up alerts for critical errors, performance degradation, SLA violations, and other anomalies so your team can react quickly.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Auto-instrument your application with [NestJS Observer](https://observer.nestjs.com). Distributed tracing, metrics, and logging made easy. Error tracking and performance monitoring for your NestJS applications.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+- `PrismaModule` harus diimpor ke setiap modul yang membutuhkan `PrismaService` melalui exports, karena `PrismaService` diexport dari `PrismaModule`.
+- `AuthModule` mengimpor `PrismaModule` (seragam dengan `CategoriesModule` dan `TransactionsModule`), bukan memasang `PrismaService` langsung ke `providers`.
+- Semua ID menggunakan UUID v4.
+- Password di-hash dengan bcrypt sebelum disimpan ke database; response login tidak menyertakan password.
+- `UpdateTransactionDto` memisahkan field relasi (`categoryId`, `accountId`) dari data biasa saat update agar bisa menggunakan `connect` pada Prisma.
+- Entitas `Transaction` dan `Category` di folder `entities/` saat ini masih kosong (hanya class kosong), validasi sebenarnya dilakukan melalui DTO.
+- `JWT_SECRET` harus diatur di file `.env` untuk menandatangani dan memverifikasi token JWT (fallback ke default jika tidak diatur).
+- `AccountModule` belum diimpor `PrismaModule` dan service-nya masih placeholder, perlu diimplementasi sesuai kebutuhan.
