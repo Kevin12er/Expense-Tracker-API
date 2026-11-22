@@ -73,7 +73,7 @@ export class AccountService {
 
    
     return this.prisma.account.delete({
-      where: { id },
+      where: { id, userId },
     });
   }
 }
