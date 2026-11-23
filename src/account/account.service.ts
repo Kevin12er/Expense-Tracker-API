@@ -38,7 +38,7 @@ export class AccountService {
 
   // find one or spesific using id
   async findOne(id: string, userId: string) {
-    const existingAccount = await this.prisma.account.findUnique({
+    const existingAccount = await this.prisma.account.findFirst({
       where: {
         id: id,
         userId: userId,

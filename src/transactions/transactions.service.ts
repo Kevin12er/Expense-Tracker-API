@@ -1,7 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 
 import { CreateTransactionDto } from './dto/create-transaction.dto.js';
 import { UpdateTransactionDto } from './dto/update-transaction.dto.js';
@@ -19,6 +16,7 @@ export class TransactionsService {
     const isCategoryExist = await this.prisma.category.findUnique({
       where: {
         id: createTransactionDto.categoryId,
+        userId: userId,
       },
     });
 
@@ -71,14 +69,14 @@ export class TransactionsService {
         account: true,
       },
       where: {
-        userId: userId
-      }
+        userId: userId,
+      },
     });
   }
 
   // FIND ONE
   async findOne(id: string, userId: string) {
-    const transaction = await this.prisma.transaction.findUnique({
+    const transaction = await this.prisma.transaction.findFirst({
       where: {
         id,
         userId,
@@ -100,23 +98,13 @@ export class TransactionsService {
   async update(
     id: string,
     updateTransactionDto: UpdateTransactionDto,
-    userId: string
+    userId: string,
   ) {
     // 1. Periksa apakah Transaction tersedia
-    const findData = await this.prisma.transaction.findUnique({
-      where: {
-        id,
-        userId,
-      },
-    });
-
-    if (!findData) {
-      throw new NotFoundException('Transaksi tidak ditemukan');
-    }
+    await this.findOne(id, userId);
 
     // 2. Pisahkan ID relasi dari data biasa
-    const { categoryId, accountId, ...transactionData } =
-      updateTransactionDto;
+    const { categoryId, accountId, ...transactionData } = updateTransactionDto;
 
     // 3. Siapkan data yang akan di-update
     const data: Prisma.TransactionUpdateInput = {
@@ -125,9 +113,10 @@ export class TransactionsService {
 
     // 4. Jika Category ID dikirim, validasi dan hubungkan
     if (categoryId !== undefined) {
-      const isCategoryExist = await this.prisma.category.findUnique({
+      const isCategoryExist = await this.prisma.category.findFirst({
         where: {
           id: categoryId,
+          userId: userId,
         },
       });
 
@@ -144,7 +133,7 @@ export class TransactionsService {
 
     // 5. Jika Account ID dikirim, validasi dan hubungkan
     if (accountId !== undefined) {
-      const isAccountExist = await this.prisma.account.findUnique({
+      const isAccountExist = await this.prisma.account.findFirst({
         where: {
           id: accountId,
         },
@@ -173,16 +162,7 @@ export class TransactionsService {
 
   // REMOVE
   async remove(id: string, userId: string) {
-    const removeTransaction = await this.prisma.transaction.findUnique({
-      where: {
-        id,
-        userId,
-      },
-    });
-
-    if (!removeTransaction) {
-      throw new NotFoundException('Transaksi tidak ditemukan');
-    }
+    await this.findOne(id, userId);
 
     return this.prisma.transaction.delete({
       where: {

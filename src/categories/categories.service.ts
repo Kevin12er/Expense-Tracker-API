@@ -40,7 +40,7 @@ export class CategoriesService {
   }
 
   async findOne(id: string, userId: string) {
-    const category = await this.prisma.category.findUnique({
+    const category = await this.prisma.category.findFirst({
       where: {
         id: id,
         userId: userId,
@@ -55,16 +55,8 @@ export class CategoriesService {
   }
 
   async update(id: string, updateCategoryDto: UpdateCategoryDto, userId: string) {
-    const isCategoryExist = await this.prisma.category.findUnique({
-      where: {
-        id: id,
-        userId: userId,
-      },
-    });
-
-    if (!isCategoryExist) {
-      throw new NotFoundException('Category Not Found');
-    }
+    
+    await this.findOne(id, userId);
 
     return this.prisma.category.update({
       where: {
@@ -78,16 +70,8 @@ export class CategoriesService {
   }
 
   async remove(id: string, userId: string) {
-    const deleteCategory = await this.prisma.category.findUnique({
-      where: {
-        id: id,
-        userId: userId,
-      },
-    });
-
-    if (!deleteCategory) {
-      throw new NotFoundException('Category Not Found');
-    }
+    
+    await this.findOne(id, userId);
 
     return this.prisma.category.delete({
       where: {
