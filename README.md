@@ -253,7 +253,11 @@ Validasi diaktifkan secara global di `main.ts` melalui `ValidationPipe` dengan `
 - `remove`: cek keberadaan, hapus transaksi, throw `NotFoundException` jika tidak ditemukan.
 
 ### AccountService
-- Saat ini masih placeholder (mengembalikan string statis), belum terhubung ke Prisma.
+- `create`: buat akun baru dengan `name`, `accountNumber` (opsional, angka saja), dan `type` (CASH/BANK/E_WALLET).
+- `findAll`: ambil semua akun.
+- `findOne`: ambil satu akun berdasarkan ID, throw `NotFoundException` jika tidak ditemukan.
+- `update`: cek keberadaan, update `name`, throw `NotFoundException` jika tidak ditemukan.
+- `remove`: cek keberadaan, hapus akun, throw `NotFoundException` jika tidak ditemukan.
 
 ## 9. Menjalankan Proyek
 
@@ -300,7 +304,7 @@ npm run format
 
 Aplikasi akan berjalan di port `3000` (atau port dari env `PORT`).
 
-## 10. Catatan Penting
+## 10. Catatan
 
 - `PrismaModule` harus diimpor ke setiap modul yang membutuhkan `PrismaService` melalui exports, karena `PrismaService` diexport dari `PrismaModule`.
 - `AuthModule` mengimpor `PrismaModule` (seragam dengan `CategoriesModule` dan `TransactionsModule`), bukan memasang `PrismaService` langsung ke `providers`.
@@ -309,4 +313,3 @@ Aplikasi akan berjalan di port `3000` (atau port dari env `PORT`).
 - `UpdateTransactionDto` memisahkan field relasi (`categoryId`, `accountId`) dari data biasa saat update agar bisa menggunakan `connect` pada Prisma.
 - Entitas `Transaction` dan `Category` di folder `entities/` saat ini masih kosong (hanya class kosong), validasi sebenarnya dilakukan melalui DTO.
 - `JWT_SECRET` harus diatur di file `.env` untuk menandatangani dan memverifikasi token JWT (fallback ke default jika tidak diatur).
-- `AccountModule` belum diimpor `PrismaModule` dan service-nya masih placeholder, perlu diimplementasi sesuai kebutuhan.
