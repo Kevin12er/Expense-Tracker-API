@@ -60,3 +60,8 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 development.md
 hermes-skill.md
 /src/generated/prisma
+
+# Agent skills (local, not for public repo)
+/.agents/
+/.claude/
+/.windsurf/
