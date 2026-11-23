@@ -21,9 +21,10 @@ export class TransactionsService {
     });
 
     // 2. Periksa apakah Account tersedia
-    const isAccountExist = await this.prisma.account.findUnique({
+    const isAccountExist = await this.prisma.account.findFirst({
       where: {
         id: createTransactionDto.accountId,
+        userId: userId,
       },
     });
 
@@ -136,6 +137,7 @@ export class TransactionsService {
       const isAccountExist = await this.prisma.account.findFirst({
         where: {
           id: accountId,
+          userId: userId,
         },
       });
 
